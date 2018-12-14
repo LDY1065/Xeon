@@ -1,0 +1,431 @@
+#include<stdio.h>
+#include<string.h>
+#include<windows.h>
+#define Contrast "q"
+
+FILE *fp;//定义全局文件指针
+struct stu//创建学生信息结构体
+{
+    char name[20];
+    char sex[10];
+    int age;
+    char studentID[10];
+};
+typedef struct stu Item;//定义一个Item类型
+struct List//学生信息链表
+{
+    Item student;
+    struct List *next;
+};
+struct cheakin//管理员帐号密码信息
+{
+    char Administrator[10];
+    char Password[10];
+};
+
+void inoswindow(char *title);//系统窗口
+int inosMenu();//菜单
+void Input();//录入学生信息
+void Output();//输出学生信息
+void Find();//查询学生信息
+void Delete();//删除学生信息
+void Change();//修改学生信息
+void tryread();//尝试读取函数
+void cheak();//登录模块
+
+int main()//系统入口函数
+{
+	char title[]="\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t***************欢迎来到学生信息管理系统***************\n\n";
+	printf("%s",title);
+	cheak();
+	system("CLS");
+	inoswindow(title);//初始化系统窗口
+    tryread();
+    fflush(stdin);
+    while(1)
+    {
+        switch(inosMenu())
+    {
+    case 1:
+    case 5:
+        fflush(stdin);//清空缓冲区
+        Input();
+        break;
+    case 2:
+        Output();
+        break;
+    case 3:
+        {
+            char *judge;
+            do
+            {
+                fflush(stdin);//清空缓冲区
+                Find();
+                printf("是否继续查找（Y/N）：");
+                scanf("%s",&judge);
+            }while(judge=='Y');
+            break;
+        }
+    case 4:
+        {
+            char *judge;
+            do
+            {
+                fflush(stdin);//清空缓冲区
+                Delete();
+                printf("是否继续删除（Y/N）:");
+                scanf("%s",&judge);
+            }while(judge=='Y');
+            break;
+        }
+    case 6:
+        {
+            char *judge;
+            do
+            {
+                fflush(stdin);//清空缓冲区
+                Change();
+                printf("是否继续删除（Y/N）:");
+                scanf("%s",&judge);
+            }while(judge=='Y');
+            break;
+        }
+    case 7:
+        printf("感谢您的使用。\n");
+        system("pause");
+        return 0;
+    default:
+        printf("输入错误，系统退出。\n");
+        break;
+    }
+    }
+
+}
+void cheak()
+{
+    int ch=0,n=0,flag=0;
+    struct cheakin Ad[10];
+    struct cheakin temporary;
+    while(1)
+    {
+         fp=fopen("cheak.txt","ab+");
+         for(int i=0;i<10;i++)
+        {
+            fread(&Ad[i],sizeof(struct cheakin),1,fp);
+            if(feof(fp))
+            {
+                n=i+1;
+                break;
+            }
+            n=10;
+        }
+    fclose(fp);
+    printf("管理员登录请按1，注册请按2，如首次使用请先注册。");
+    scanf("%d",&ch);
+         switch(ch)
+    {
+    case 1:
+        printf("请输入账号:");
+        scanf("%s",&temporary.Administrator);
+        printf("请输入密码：");
+        scanf("%s",temporary.Password);
+        for(int i=0;i<n;i++)
+        {
+            if(strcmp(temporary.Administrator,Ad[i].Administrator)==0&&strcmp(temporary.Password,Ad[i].Password)==0)
+            {
+                printf("登录成功。");
+                flag=1;  //登录成功标记
+                break;
+            }
+            if(i==n-1)
+            {
+                printf("账号名或密码错误，请重新输入。");
+                Sleep(1000);
+                system("CLS");
+                printf("请输入账号:");
+                scanf("%s",&temporary.Administrator);
+                printf("请输入密码：");
+                scanf("%s",temporary.Password);
+                i=0;
+            }
+        }
+        break;
+    case 2:
+        if(n==10)
+        {
+            printf("管理员人数已达上限，无法注册。");
+            break;
+        }
+        else
+        {
+            fp=fopen("cheak.txt","ab+");
+            printf("请输入注册的用户名（10字符以内）：");
+            scanf("%s",&temporary.Administrator);
+            printf("请输入密码（10字符以内）：");
+            scanf("%s",&temporary.Password);
+            if(fwrite(&temporary,sizeof(struct cheakin),1,fp)==1)
+            {
+                printf("注册成功。");
+                fclose(fp);
+            }
+            else
+            {
+                printf("注册失败，系统退出。");
+                fclose(fp);
+                exit(1);
+            }
+        }
+        break;
+    default:
+        printf("你的输入有问题哦。");
+        break;
+    }
+
+    if(flag==1)
+        break;
+    }
+
+}
+void inoswindow(char *title)
+{
+    system("mode con cols=150 lines=50");
+    system("color f9");
+    printf("%s",title);
+
+}
+int inosMenu()
+{
+    int ch=0;
+    printf("\t\t\t\t\t\t=================学生信息管理系统=====================\n");
+    printf("\t\t\t\t\t\t 1.录入学生信息\n");
+	printf("\t\t\t\t\t\t 2.浏览学生信息\n");
+	printf("\t\t\t\t\t\t 3.查询学生信息\n");
+	printf("\t\t\t\t\t\t 4.删除学生信息\n");
+	printf("\t\t\t\t\t\t 5.添加学生信息\n");
+	printf("\t\t\t\t\t\t 6.修改学生信息\n");
+	printf("\t\t\t\t\t\t 7.退出系统!\n");
+    printf("\t\t\t\t\t\t=================学生信息管理系统=====================\n");
+    printf("请选择菜单：");
+    scanf("%d",&ch);
+    return ch;
+}
+void Input()
+{
+    struct stu *add;
+    fp=fopen("STUinformation.txt","ab+");//打开学生信息文件
+    if(fp==NULL)
+    {
+        printf("系统出现错误");
+        exit(1);
+    }
+    printf("请输入学生信息，输入q结束\n");
+    for(int i=1;;i++)
+    {
+        add=(struct stu*)malloc(sizeof(struct stu));
+        printf("请输入要添加的第%d名学生的名字：",i);
+        scanf("%s",&add->name);
+        if(strcmp(add->name,Contrast)==0)//与字符串“q”对比
+        {
+            fclose(fp);
+            break;
+        }
+        printf("请输入性别：");
+        scanf("%s",&add->sex);
+        printf("请输入年龄：");
+        scanf("%d",&add->age);
+        printf("请输入学号：");
+        scanf("%s",&add->studentID);
+        fwrite(add,sizeof(struct stu),1,fp);
+        printf("添加成功！\n");
+    }
+}
+void Output()
+{
+    int i=1;
+    struct stu *test;
+    printf("------------------------------------------------------------------------------------------------------------------------------------------------------");
+    printf("  学生姓名    性别    年龄        学号\n");
+    fp=fopen("STUinformation.txt","ab+");
+    test=(struct stu*)malloc(sizeof(struct stu));
+    while(fread(test,sizeof(struct stu),1,fp)==1)
+    {
+        printf("%d",i++);
+        printf("  %s      %s      %d      %s\n",test->name,test->sex,test->age,test->studentID);
+    }
+}
+void Find()
+{
+    int flag=0;
+    struct List*head,*current,*prev;
+    char find[20];
+    fp=fopen("STUinformation.txt","ab+");//二进制读模式打开文件
+    head=NULL;
+    while(1)
+    {
+        current=(struct List*)malloc(sizeof(struct List));
+        if(head==NULL)
+            head=current;//头指针
+        else
+            prev->next=current;
+        fread(current,sizeof(Item),1,fp);
+        if(feof(fp))
+        {
+            current->next=NULL;
+            fclose(fp);
+            break;
+        }
+        prev=current;
+    }
+    printf("请输入你要查找的学生姓名：");
+    scanf("%s",find);
+    for(current=head;;current=current->next)
+    {
+        if(strcmp(current->student.name,find)==0)
+        {
+            flag=1;
+            printf("该学生的信息为，姓名：%s，性别：%s，年龄：%d，学号：%s。\n",current->student.name,current->student.sex,current->student.age,current->student.studentID);
+            printf("请输入下一个要查找的学生姓名(输入q结束)：\n");
+            scanf("%s",find);
+            if(strcmp(find,Contrast)==0)
+            break;
+            current=head;
+        }
+        if(current->next==NULL&&flag==0)
+        {
+            printf("找不到该学生的信息。\n");
+            break;
+        }
+        flag=0;
+    }
+}
+void Delete()
+{
+    int flag=0;
+    char Delete[20];
+    struct List*head,*current,*prev;
+    fp=fopen("STUinformation.txt","ab+");
+    head=NULL;
+    while(1)
+    {
+        current=(struct List*)malloc(sizeof(struct List));
+        if(head==NULL)
+            head=current;//头指针
+        else
+            prev->next=current;
+        fread(current,sizeof(Item),1,fp);
+        if(feof(fp))
+        {
+            current->next=NULL;
+            fclose(fp);
+            break;
+        }
+        prev=current;
+    }
+    fp=fopen("STUinformation.txt","wb+");
+    printf("请输入要删除的学生姓名：");
+    scanf("%s",Delete);
+    current=head;
+    for(;;current=current->next)
+    {
+        if(strcmp(current->student.name,Delete)==0&&flag==0)
+        {
+            head=head->next;
+            free(current);
+            printf("删除成功。\n");
+            break;
+        }
+        if(strcmp(current->student.name,Delete)==0&&flag!=0)
+        {
+            prev->next=current->next;
+            free(current);
+            printf("删除成功。\n");
+            break;
+        }
+        if(current->next==NULL)
+        {
+            printf("找不到该学生信息。\n");
+            break;
+        }
+        flag=1;
+        prev=current;
+    }
+    for(current=head;current->next!=NULL;current=current->next)
+           fwrite(current,sizeof(Item),1,fp);
+    fclose(fp);
+}
+void Change()
+{
+    char change[20];
+    int flag=0;
+    struct List*head,*current,*prev;
+    fp=fopen("STUinformation.txt","ab+");
+    head=NULL;
+    while(1)
+    {
+        current=(struct List*)malloc(sizeof(struct List));
+        if(head==NULL)
+            head=current;//头指针
+        else
+            prev->next=current;
+        fread(current,sizeof(Item),1,fp);
+        if(feof(fp))
+        {
+            prev->next=NULL;
+            free(current);
+            fclose(fp);
+            break;
+        }
+        prev=current;
+    }
+    fp=fopen("STUinformation.txt","wb+");
+    printf("请输入要修改的学生信息姓名：");
+    scanf("%s",change);
+    for(current=head;;current=current->next)
+    {
+        if(strcmp(current->student.name,change)==0)
+        {
+            printf("请输入要修改的信息，1、名字，2、性别，3、年龄、4，学号：");
+            scanf("%d",&flag);
+            switch(flag)
+            {
+            case 1:
+                printf("请输入名字：");
+                scanf("%s",&current->student.name);
+                printf("修改成功！");
+                break;
+            case 2:
+                printf("请输入性别：");
+                scanf("%s",&current->student.sex);
+                printf("修改成功！");
+                break;
+            case 3:
+                printf("请输入年龄：");
+                scanf("%d",&current->student.age);
+                printf("修改成功！");
+                break;
+            case 4:
+                printf("请输入学号：");
+                scanf("%s",&current->student.studentID);
+                printf("修改成功！");
+                break;
+            default:
+                printf("输入错误，系统退出。");
+                exit(1);
+                break;
+            }
+        }
+    }
+    for(current=head;current!=NULL;current=current->next)
+    {
+        fwrite(current,sizeof(Item),1,fp);
+        fclose(fp);
+    }
+}
+void tryread()
+{
+    if(fp=fopen("STUinformation.txt","ab+")==NULL)
+    {
+        printf("读取失败，退出系统。");
+        exit(1);
+    }
+}
